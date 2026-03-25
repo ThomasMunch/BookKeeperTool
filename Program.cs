@@ -52,8 +52,12 @@ foreach (var file in files)
 
         Console.WriteLine($"--- {month} ---");
         Console.WriteLine($"Omsætning: {result.Revenue:N2}");
-        Console.WriteLine($"Google fee: {result.Fee:N2}");
-        Console.WriteLine($"Netto: {result.Net:N2}");
+        Console.WriteLine($"Google fee: {result.GoogleFee:N2}");
+        Console.WriteLine($"Netto: {result.NetPayout:N2}");
+        Console.WriteLine($"Reverse charge grundlag: {result.ReverseChargeBase:N2}");
+        //Console.WriteLine($"Reverse charge netto: {result.ReverseChargeNet:N2}");
+        Console.WriteLine($"Reverse charge moms: {result.ReverseChargeVAT:N2}");
+
         Console.WriteLine($"Forventet udbetaling: medio {payoutMonth}");
         Console.WriteLine();
     }

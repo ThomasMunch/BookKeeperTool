@@ -38,14 +38,19 @@ namespace BookKeeperTool.Parsers
                         fee += amount;
                 }
             }
-
+            var feeAbs = Math.Abs(fee);
             return new RevenueResult
             {
                 Source = "Google",
                 Revenue = revenue,
-                Fee = fee,
-                Net = revenue + fee
+                GoogleFee = fee,
+                NetPayout = revenue + fee,
+                ReverseChargeBase = feeAbs,
+                ReverseChargeVAT = Math.Round(feeAbs * 0.25m, 2)
             };
+
+
+
         }
     }
 }

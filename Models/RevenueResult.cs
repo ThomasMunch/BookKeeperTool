@@ -12,7 +12,12 @@ namespace BookKeeperTool.Models
         public string Month { get; set; } = "";
 
         public decimal Revenue { get; set; }
-        public decimal Fee { get; set; }
-        public decimal Net { get; set; }
+        public decimal GoogleFee { get; set; }
+        public decimal NetPayout { get; set; }
+
+        // NEW 👇
+        //public decimal ReverseChargeNet => Math.Round(ReverseChargeBase / 1.25m, 2);
+        public decimal ReverseChargeBase { get; set; }   // = GoogleFee
+        public decimal ReverseChargeVAT { get; set; }    // = GoogleFee * 0.25m
     }
 }

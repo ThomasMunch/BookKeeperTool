@@ -52,8 +52,8 @@ namespace BookKeeperTool.Parsers
             {
                 Source = "Apple",
                 Revenue = total,
-                Fee = 0, // Apple fee er allerede trukket
-                Net = total
+                GoogleFee = 0, // Apple fee er allerede trukket
+                NetPayout = total
             };
         }
     }
