@@ -19,12 +19,17 @@ public class AppleParser : IParser
         return month;
     }
 
+
+    /// <summary>
+    /// Apple udbetaler ca. 33 dage efter månedsafslutning
+    /// </summary>
+    /// <param name="fileName">Filnavnet, fx "FD_92817760_0326.txt"</param>
+    /// <returns></returns>
     public DateOnly GetPayoutDateFromFileName(string fileName)
     {
         var parts = fileName.Split('_');
-        var raw = parts.Last(); // fx "1125"
-
-        // MMYY → yyyy-MM
+        var raw = parts.Last(); // fx "0326" // MMYY → yyyy-MM
+               
         var monthPart = raw.Substring(0, 2);
         var yearPart = raw.Substring(2, 2);
 

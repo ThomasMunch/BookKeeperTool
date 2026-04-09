@@ -14,15 +14,19 @@ namespace BookKeeperTool.Parsers
             return month;
         }
 
+        /// <summary>
+        /// Google udbetaler ca. 16 dage efter månedsafslutning
+        /// </summary>
+        /// <param name="fileName">Filnavnet, fx "2025-12_PlayApps.csv"</param>
+        /// <returns></returns>
         public DateOnly GetPayoutDateFromFileName(string fileName)
         {
-
             var yearAndMonth = fileName.Split('_')[0];//Google
 
             var parts = yearAndMonth.Split('-');
           
             var monthPart = parts.Last(); // fx "12"
-            var yearPart = parts.First(); // fx "2023"
+            var yearPart = parts.First(); // fx "2025"
 
             var year = int.Parse(yearPart);
             var month = int.Parse(monthPart);
