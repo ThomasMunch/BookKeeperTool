@@ -30,26 +30,22 @@ var choice = Console.ReadLine()?.Trim('"') ?? "";
 
 IParser parser;
 string extension;
-//string feeName;
-//string whenToExpectPayout;
-//int payoutDelayMonths=0;
 string vendorName = "";
+
 if (choice.Equals("G", StringComparison.OrdinalIgnoreCase))
 {
     parser = new GoogleParser();
     extension = "*.csv";
-    vendorName = "Google";
-    //whenToExpectPayout = "medio";
-    //payoutDelayMonths = 1;
+    vendorName = "Google"; 
 }
+
 else if (choice.Equals("A", StringComparison.OrdinalIgnoreCase))
 {
     parser = new AppleParser();
     extension = "*.txt";
-    vendorName = "Apple";
-    //whenToExpectPayout = "primo";
-    //payoutDelayMonths = 2;
+    vendorName = "Apple"; 
 }
+
 else
 {
     Console.WriteLine("Ugyldigt valg.");
@@ -89,7 +85,7 @@ foreach (var file in files)
 
 results.Sort((a, b) => a.PayoutDate.CompareTo(b.PayoutDate));
 
-Console.WriteLine("\n===== RESULTATER =====\n");
+Console.WriteLine($"\n===== {vendorName} RESULTATER =====\n");
 
 foreach (var (month, payoutDate, result) in results)
 {
