@@ -5,8 +5,37 @@ using BookKeeperTool.Models;
 
 namespace BookKeeperTool.Parsers
 {
-    public class GoogleParser
+    public class GoogleParser: IParser
     {
+            
+        public string GetMonthFromFileName(string fileName)
+        {
+            var month = fileName.Split('_')[0];//Google
+            return month;
+        }
+
+        public DateOnly GetPayoutDateFromFileName(string fileName)
+        {
+
+            var yearAndMonth = fileName.Split('_')[0];//Google
+
+            var parts = yearAndMonth.Split('-');
+          
+            var monthPart = parts.Last(); // fx "12"
+            var yearPart = parts.First(); // fx "2023"
+
+            var year = int.Parse(yearPart);
+            var month = int.Parse(monthPart);
+
+            DateOnly payoutDate = new DateOnly(year, month, 1);
+            int daysInMonthMinus1 = DateTime.DaysInMonth(year, month) - 1;
+            payoutDate = payoutDate.AddDays(daysInMonthMinus1);
+
+            int daysAfterPeriodForPayout = 16; // Google udbetaler ca. 16 dage efter månedsafslutning
+            return payoutDate.AddDays(daysAfterPeriodForPayout);
+        }
+
+
         public RevenueResult Parse(string filePath)
         {
             using var reader = new StreamReader(filePath);
@@ -43,7 +72,7 @@ namespace BookKeeperTool.Parsers
             {
                 Source = "Google",
                 Revenue = revenue,
-                GoogleFee = fee,
+                GoogleOrAppleFee = fee,
                 NetPayout = revenue + fee,
                 ReverseChargeBase = feeAbs,
                 ReverseChargeVAT = Math.Round(feeAbs * 0.25m, 2)

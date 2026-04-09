@@ -1,60 +1,141 @@
 ﻿using System.Globalization;
 using BookKeeperTool.Models;
 
-namespace BookKeeperTool.Parsers
+namespace BookKeeperTool.Parsers;
+
+public class AppleParser : IParser
 {
-    public class AppleParser
+  
+    public string GetMonthFromFileName(string fileName)
     {
-        public RevenueResult Parse(string filePath)
+        var parts = fileName.Split('_');
+        var raw = parts.Last(); // fx "1125"
+
+        // MMYY → yyyy-MM
+        var monthPart = raw.Substring(0, 2);
+        var yearPart = raw.Substring(2, 2);
+
+        var month = $"20{yearPart}-{monthPart}";
+        return month;
+    }
+
+    public DateOnly GetPayoutDateFromFileName(string fileName)
+    {
+        var parts = fileName.Split('_');
+        var raw = parts.Last(); // fx "1125"
+
+        // MMYY → yyyy-MM
+        var monthPart = raw.Substring(0, 2);
+        var yearPart = raw.Substring(2, 2);
+
+        var year = 2000 + int.Parse(yearPart);
+        var month = int.Parse(monthPart);
+
+        DateOnly payoutDate = new DateOnly(year, month, 1);
+        int daysInMonthMinus1 = DateTime.DaysInMonth(year, month) - 1;
+        payoutDate = payoutDate.AddDays(daysInMonthMinus1);
+
+        int daysAfterPeriodForPayout = 33; // Apple udbetaler ca. 33 dage efter månedsafslutning
+        return payoutDate.AddDays(daysAfterPeriodForPayout);
+    }
+
+    public RevenueResult Parse(string filePath)
+    {
+        var lines = File.ReadAllLines(filePath);
+
+        var headerLineIndex = lines.ToList().FindIndex(l => l.StartsWith("Transaction Date"));
+
+        if (headerLineIndex == -1)
+            throw new Exception("Kunne ikke finde header i Apple fil");
+
+        var header = lines[headerLineIndex].Split('\t');
+
+        int quantityIndex = Array.IndexOf(header, "Quantity");
+        int partnerShareIndex = Array.IndexOf(header, "Partner Share");
+        int customerPriceIndex = Array.IndexOf(header, "Customer Price");
+        int currencyIndex = Array.IndexOf(header, "Partner Share Currency");
+
+        decimal totalRevenueDKK = 0m;
+        decimal totalNetDKK = 0m;
+
+        foreach (var line in lines.Skip(headerLineIndex + 1)) //Was: foreach (var line in lines.Skip(1))
         {
-            var lines = File.ReadAllLines(filePath);
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
 
-            if (lines.Length < 2)
-                throw new Exception("Tom eller ugyldig Apple rapport");
+            var cols = line.Split('\t');
 
-            var headers = lines[0].Split('\t');
+            // Stop ved summary section
+            if (cols[0] == "Country Of Sale")
+                break;
 
-            int amountIndex = Array.IndexOf(headers, "Extended Partner Share");
-            int currencyIndex = Array.IndexOf(headers, "Partner Share Currency");
-            int typeIndex = Array.IndexOf(headers, "Sale or Return");
+            if (cols.Length <= Math.Max(Math.Max(quantityIndex, partnerShareIndex), customerPriceIndex))
+                continue;
 
-            if (amountIndex == -1 || currencyIndex == -1 || typeIndex == -1)
-                throw new Exception("Kunne ikke finde nødvendige kolonner");
-
-            decimal total = 0;
-
-            for (int i = 1; i < lines.Length; i++)
+            try
             {
-                var cols = lines[i].Split('\t');
+                int quantity = int.Parse(cols[quantityIndex]);
 
-                if (cols.Length <= Math.Max(amountIndex, Math.Max(currencyIndex, typeIndex)))
-                    continue;
+                decimal partnerShare = decimal.Parse(cols[partnerShareIndex], CultureInfo.InvariantCulture);
+                decimal customerPrice = decimal.Parse(cols[customerPriceIndex], CultureInfo.InvariantCulture);
 
-                var type = cols[typeIndex];
-                var currency = cols[currencyIndex];
-                var amountStr = cols[amountIndex];
+                string currency = cols[currencyIndex];
 
-                // Kun rigtige salg
-                if (type != "S")
-                    continue;
+                decimal rate = GetRate(currency);
 
-                // Kun DKK (version 1)
-                if (currency != "DKK")
-                    continue;
-
-                if (decimal.TryParse(amountStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var amount))
-                {
-                    total += amount;
-                }
+                totalRevenueDKK += quantity * customerPrice * rate;
+                totalNetDKK += quantity * partnerShare * rate;
             }
-
-            return new RevenueResult
+            catch
             {
-                Source = "Apple",
-                Revenue = total,
-                GoogleFee = 0, // Apple fee er allerede trukket
-                NetPayout = total
-            };
+                continue;
+            }
         }
+
+        //var fee = totalRevenueDKK - totalNetDKK;
+
+
+        //return new RevenueResult
+        //{
+        //    Revenue = Math.Round(totalNetDKK, 2),
+        //    GoogleOrAppleFee = 0,
+        //    NetPayout = Math.Round(totalNetDKK, 2),
+        //    ReverseChargeBase = 0,
+        //    ReverseChargeVAT = 0
+        //};
+        var fee = totalRevenueDKK - totalNetDKK;
+
+        return new RevenueResult
+        {
+            Source = "Apple",
+
+            // 👇 VIS BRUTTO (til analyse)
+            Revenue = Math.Round(totalRevenueDKK, 2),
+
+            // 👇 VIS FEE (til analyse)
+            GoogleOrAppleFee = Math.Round(-fee, 2),
+
+            // 👇 DETTE ER DET ENESTE DU BRUGER TIL BOGFØRING
+            NetPayout = Math.Round(totalNetDKK, 2),
+
+            // 👇 STADIG 0 (ingen reverse charge!)
+            ReverseChargeBase = 0,
+            ReverseChargeVAT = 0
+        };
+
+    }
+
+
+    private decimal GetRate(string currency)
+    {
+        return currency switch
+        {
+            "DKK" => 1m,
+            "EUR" => 7.45m,
+            "USD" => 6.9m,
+            "GBP" => 8.6m,
+            "SEK" => 0.65m,
+            _ => 1m
+        };
     }
 }

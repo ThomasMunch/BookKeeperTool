@@ -1,17 +1,17 @@
 ﻿using BookKeeperTool.Parsers;
 
-string folderPath;
+string folderPath = "C:\\Reports";
 
 // Input (argument eller prompt)
-if (args.Length > 0)
-{
-    folderPath = args[0];
-}
-else
-{
-    Console.Write("Indtast mappe med CSV filer: ");
-    folderPath = Console.ReadLine()?.Trim('"') ?? "";
-}
+//if (args.Length > 0)
+//{
+//    folderPath = args[0];
+//}
+//else
+//{
+//    Console.Write("Indtast mappe med Financial Reports filer: ");
+//    folderPath = Console.ReadLine()?.Trim('"') ?? "";
+//}
 
 if (string.IsNullOrWhiteSpace(folderPath))
 {
@@ -25,41 +25,59 @@ if (!Directory.Exists(folderPath))
     return;
 }
 
-// Find alle CSV filer
-var files = Directory.GetFiles(folderPath, "*.csv");
+Console.Write("Vælg (G)oogle eller (A)pple: ");
+var choice = Console.ReadLine()?.Trim('"') ?? "";
 
-if (files.Length == 0)
+IParser parser;
+string extension;
+//string feeName;
+//string whenToExpectPayout;
+//int payoutDelayMonths=0;
+string vendorName = "";
+if (choice.Equals("G", StringComparison.OrdinalIgnoreCase))
 {
-    Console.WriteLine("Ingen CSV filer fundet.");
+    parser = new GoogleParser();
+    extension = "*.csv";
+    vendorName = "Google";
+    //whenToExpectPayout = "medio";
+    //payoutDelayMonths = 1;
+}
+else if (choice.Equals("A", StringComparison.OrdinalIgnoreCase))
+{
+    parser = new AppleParser();
+    extension = "*.txt";
+    vendorName = "Apple";
+    //whenToExpectPayout = "primo";
+    //payoutDelayMonths = 2;
+}
+else
+{
+    Console.WriteLine("Ugyldigt valg.");
     return;
 }
 
-var parser = new GoogleParser();
+// Find alle CSV filer(Google) eller txt filer(Apple) i mappen
+var files = Directory.GetFiles(folderPath, extension);
 
-Console.WriteLine("\n===== RESULTATER =====\n");
+if (files.Length == 0)
+{
+    Console.WriteLine($"Ingen filer fundet med {extension}");
+    return;
+}
+
+// Parse alle filer til en liste og sorter på payoutDate
+var results = new List<(string Month, DateOnly PayoutDate, BookKeeperTool.Models.RevenueResult Result)>();
 
 foreach (var file in files)
 {
     try
     {
         var result = parser.Parse(file);
-
-        // Udtræk måned fra filnavn (fx 2025-07_PlayApps.csv)
         var fileName = Path.GetFileNameWithoutExtension(file);
-        var month = fileName.Split('_')[0];
+        var month = parser.GetMonthFromFileName(fileName);
+        var payoutDate = parser.GetPayoutDateFromFileName(fileName);
 
-        var payoutMonth = GetNextMonth(month);
-
-        Console.WriteLine($"--- {month} ---");
-        Console.WriteLine($"Omsætning: {result.Revenue:N2}");
-        Console.WriteLine($"Google fee: {result.GoogleFee:N2}");
-        Console.WriteLine($"Netto: {result.NetPayout:N2}");
-        Console.WriteLine($"Reverse charge grundlag: {result.ReverseChargeBase:N2}");
-        //Console.WriteLine($"Reverse charge netto: {result.ReverseChargeNet:N2}");
-        Console.WriteLine($"Reverse charge moms: {result.ReverseChargeVAT:N2}");
-
-        Console.WriteLine($"Forventet udbetaling: medio {payoutMonth}");
-        Console.WriteLine();
+        results.Add((month, payoutDate, result));
     }
     catch (Exception ex)
     {
@@ -69,9 +87,24 @@ foreach (var file in files)
     }
 }
 
-string GetNextMonth(string month)
+results.Sort((a, b) => a.PayoutDate.CompareTo(b.PayoutDate));
+
+Console.WriteLine("\n===== RESULTATER =====\n");
+
+foreach (var (month, payoutDate, result) in results)
 {
-    var date = DateTime.ParseExact(month + "-01", "yyyy-MM-dd", null);
-    var next = date.AddMonths(1);
-    return next.ToString("yyyy-MM");
+    Console.WriteLine($"--- {month} ---");
+    Console.WriteLine($"Omsætning: {result.Revenue:N2}");
+    Console.WriteLine($"{vendorName} fee: {result.GoogleOrAppleFee:N2}");
+
+    var feePercent = result.Revenue != 0
+        ? Math.Abs(result.GoogleOrAppleFee) / result.Revenue * 100
+        : 0;
+
+    Console.WriteLine($"Fee %: {feePercent:F1}%");
+    Console.WriteLine($"Netto til udbetaling: {result.NetPayout:N2}");
+    Console.WriteLine($"Reverse charge grundlag: {result.ReverseChargeBase:N2}");
+    Console.WriteLine($"Reverse charge moms: {result.ReverseChargeVAT:N2}");
+    Console.WriteLine($"Forventet udbetalingstidspunkt: {payoutDate}");
+    Console.WriteLine();
 }
