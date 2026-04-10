@@ -7,26 +7,44 @@ namespace BookKeeperTool.Parsers
 {
     public class GoogleParser: IParser
     {
-            
-        public string GetMonthFromFileName(string fileName)
-        {
-            var month = fileName.Split('_')[0];//Google
-            return month;
-        }
+
+        ///// <summary>
+        ///// Google udbetaler ca. 16 dage efter månedsafslutning
+        ///// </summary>
+        ///// <param name="fileName">Filnavnet, fx "2025-12_PlayApps.csv" or "PlayApps_202602.csv"</param>
+        ///// <returns></returns>
+        //public DateOnly GetPayoutDateFromFileNameOld(string fileName)
+        //{
+        //    var yearAndMonth = fileName.Split('_')[0];//Google
+
+        //    var parts = yearAndMonth.Split('-');
+          
+        //    var monthPart = parts.Last(); // fx "12"
+        //    var yearPart = parts.First(); // fx "2025"
+
+        //    var year = int.Parse(yearPart);
+        //    var month = int.Parse(monthPart);
+
+        //    DateOnly payoutDate = new DateOnly(year, month, 1);
+        //    int daysInMonthMinus1 = DateTime.DaysInMonth(year, month) - 1;
+        //    payoutDate = payoutDate.AddDays(daysInMonthMinus1);
+
+        //    int daysAfterPeriodForPayout = 16; // Google udbetaler ca. 16 dage efter månedsafslutning
+        //    return payoutDate.AddDays(daysAfterPeriodForPayout);
+        //}
 
         /// <summary>
-        /// Google udbetaler ca. 16 dage efter månedsafslutning
+        /// "PlayApps_202602.csv"
         /// </summary>
-        /// <param name="fileName">Filnavnet, fx "2025-12_PlayApps.csv"</param>
+        /// <param name="fileName"></param>
         /// <returns></returns>
         public DateOnly GetPayoutDateFromFileName(string fileName)
         {
-            var yearAndMonth = fileName.Split('_')[0];//Google
+            var parts = fileName.Split('_');
+            var raw = parts.Last(); // fx "202602" // YYYYMM → yyyy-MM
 
-            var parts = yearAndMonth.Split('-');
-          
-            var monthPart = parts.Last(); // fx "12"
-            var yearPart = parts.First(); // fx "2025"
+            var yearPart = raw.Substring(0, 4);
+            var monthPart = raw.Substring(4, 2);
 
             var year = int.Parse(yearPart);
             var month = int.Parse(monthPart);
@@ -37,6 +55,19 @@ namespace BookKeeperTool.Parsers
 
             int daysAfterPeriodForPayout = 16; // Google udbetaler ca. 16 dage efter månedsafslutning
             return payoutDate.AddDays(daysAfterPeriodForPayout);
+        }
+
+        public string GetYearMonthFromFileName(string fileName)
+        {
+            //var month = fileName.Split('_')[0];//Google
+            //return month;
+            var parts = fileName.Split('_');
+            var raw = parts.Last(); // fx "202602" // YYYYMM → yyyy-MM
+
+            var yearPart = raw.Substring(0, 4);
+            var monthPart = raw.Substring(4, 2);
+
+            return $"{yearPart}-{monthPart}";
         }
 
 
@@ -81,9 +112,7 @@ namespace BookKeeperTool.Parsers
                 ReverseChargeBase = feeAbs,
                 ReverseChargeVAT = Math.Round(feeAbs * 0.25m, 2)
             };
-
-
-
         }
+
     }
 }

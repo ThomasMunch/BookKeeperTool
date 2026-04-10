@@ -9,7 +9,7 @@ namespace BookKeeperTool.Models
     public class RevenueResult
     {
         public string Source { get; set; } = "";
-        public string Month { get; set; } = "";
+        public string YearMonth { get; set; } = "";
         public decimal Revenue { get; set; }
         public decimal GoogleOrAppleFee { get; set; }
         public decimal NetPayout { get; set; }

@@ -35,7 +35,7 @@ string vendorName = "";
 if (choice.Equals("G", StringComparison.OrdinalIgnoreCase))
 {
     parser = new GoogleParser();
-    extension = "*.csv";
+    extension = "PlayApps*.csv";
     vendorName = "Google"; 
 }
 
@@ -70,10 +70,10 @@ foreach (var file in files)
     {
         var result = parser.Parse(file);
         var fileName = Path.GetFileNameWithoutExtension(file);
-        var month = parser.GetMonthFromFileName(fileName);
+        var yearMonth = parser.GetYearMonthFromFileName(fileName);
         var payoutDate = parser.GetPayoutDateFromFileName(fileName);
 
-        results.Add((month, payoutDate, result));
+        results.Add((yearMonth, payoutDate, result));
     }
     catch (Exception ex)
     {
@@ -87,9 +87,9 @@ results.Sort((a, b) => a.PayoutDate.CompareTo(b.PayoutDate));
 
 Console.WriteLine($"\n===== {vendorName} RESULTATER =====\n");
 
-foreach (var (month, payoutDate, result) in results)
+foreach (var (yearMonth, payoutDate, result) in results)
 {
-    Console.WriteLine($"--- {month} ---");
+    Console.WriteLine($"--- {yearMonth} ---");
     Console.WriteLine($"Omsætning: {result.Revenue:N2}");
     Console.WriteLine($"{vendorName} fee: {result.GoogleOrAppleFee:N2}");
 

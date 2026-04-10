@@ -11,7 +11,7 @@ namespace BookKeeperTool.Parsers
     {
         RevenueResult Parse(string filePath);
 
-        string GetMonthFromFileName(string fileName);
+        string GetYearMonthFromFileName(string fileName);
         //string GetExpectedPayoutMonthFromFileName(string fileName);
 
         DateOnly GetPayoutDateFromFileName(string fileName);

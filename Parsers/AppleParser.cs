@@ -6,7 +6,7 @@ namespace BookKeeperTool.Parsers;
 public class AppleParser : IParser
 {
   
-    public string GetMonthFromFileName(string fileName)
+    public string GetYearMonthFromFileName(string fileName)
     {
         var parts = fileName.Split('_');
         var raw = parts.Last(); // fx "1125"
