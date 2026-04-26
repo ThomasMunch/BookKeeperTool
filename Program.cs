@@ -104,3 +104,6 @@ foreach (var (yearMonth, payoutDate, result) in results)
     Console.WriteLine($"Forventet udbetalingstidspunkt: {payoutDate}");
     Console.WriteLine();
 }
+
+Console.WriteLine("Tryk på en tast for at lukke...");
+Console.ReadKey();
