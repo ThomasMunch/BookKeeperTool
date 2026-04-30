@@ -12,28 +12,4 @@ How to use it:
 #4 Run the tool and point it to the folder with the csv-files
 #5 Use the output for your bookkeeping in Dinero or any other accounting software
 
-The console output should be something like this:
-
-Indtast mappe med CSV filer: C:\Reports
-
-===== RESULTATER =====
-
---- 2025-01 ---
-Omsætning: 24.538,77
-Google fee: -3.682,91
-Netto: 20.855,86
-Forventet udbetaling: medio 2025-02
-
---- 2025-02 ---
-Omsætning: 17.724,13
-Google fee: -2.662,54
-Netto: 15.061,59
-Forventet udbetaling: medio 2025-03
-
---- 2025-03 ---
-Omsætning: 17.536,45
-Google fee: -2.635,00
-Netto: 14.901,45
-Forventet udbetaling: medio 2025-04
-...
 
