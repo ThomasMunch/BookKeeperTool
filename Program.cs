@@ -87,23 +87,60 @@ results.Sort((a, b) => a.PayoutDate.CompareTo(b.PayoutDate));
 
 Console.WriteLine($"\n===== {vendorName} RESULTATER =====\n");
 
+//foreach (var (yearMonth, payoutDate, result) in results)
+//{
+//    Console.WriteLine($"--- {yearMonth} ---");
+//    Console.WriteLine($"Omsætning: {result.Revenue:N2}");
+//    Console.WriteLine($"{vendorName} fee: {result.GoogleOrAppleFee:N2}");
+
+//    var feePercent = result.Revenue != 0
+//        ? Math.Abs(result.GoogleOrAppleFee) / result.Revenue * 100
+//        : 0;
+
+//    Console.WriteLine($"Fee %: {feePercent:F1}%");
+//    Console.WriteLine($"Netto til udbetaling: {result.NetPayout:N2}");
+//    Console.WriteLine($"Reverse charge grundlag: {result.ReverseChargeBase:N2}");
+//    Console.WriteLine($"Reverse charge moms: {result.ReverseChargeVAT:N2}");
+//    Console.WriteLine($"Forventet udbetalingstidspunkt: {payoutDate}");
+//    Console.WriteLine();
+//}
 foreach (var (yearMonth, payoutDate, result) in results)
 {
     Console.WriteLine($"--- {yearMonth} ---");
-    Console.WriteLine($"Omsætning: {result.Revenue:N2}");
-    Console.WriteLine($"{vendorName} fee: {result.GoogleOrAppleFee:N2}");
 
-    var feePercent = result.Revenue != 0
-        ? Math.Abs(result.GoogleOrAppleFee) / result.Revenue * 100
-        : 0;
+    if (result.Source == "Apple")
+    {
+        Console.WriteLine($"Kundebetaling brutto inkl. Apple-opkrævede skatter: {result.GrossCustomerPayments:N2}");
+        Console.WriteLine($"Apple-opkrævet kundemoms/skatter: {-result.CustomerTax:N2}");
+        Console.WriteLine($"Omsætning ekskl. kundemoms/skatter: {result.Revenue:N2}");
+        Console.WriteLine($"Apple commission: {result.GoogleOrAppleFee:N2}");
 
-    Console.WriteLine($"Fee %: {feePercent:F1}%");
+        var appleCommissionPercent = result.Revenue != 0
+            ? Math.Abs(result.GoogleOrAppleFee) / result.Revenue * 100
+            : 0;
+
+        Console.WriteLine($"Apple commission %: {appleCommissionPercent:F1}%");
+
+        var totalWithheld = result.CustomerTax + result.AppleCommission;
+        Console.WriteLine($"Tilbageholdt i alt, skat + commission: {-totalWithheld:N2}");
+    }
+    else
+    {
+        Console.WriteLine($"Omsætning: {result.Revenue:N2}");
+        Console.WriteLine($"{vendorName} fee: {result.GoogleOrAppleFee:N2}");
+
+        var feePercent = result.Revenue != 0
+            ? Math.Abs(result.GoogleOrAppleFee) / result.Revenue * 100
+            : 0;
+
+        Console.WriteLine($"Fee %: {feePercent:F1}%");
+    }
+
     Console.WriteLine($"Netto til udbetaling: {result.NetPayout:N2}");
     Console.WriteLine($"Reverse charge grundlag: {result.ReverseChargeBase:N2}");
     Console.WriteLine($"Reverse charge moms: {result.ReverseChargeVAT:N2}");
     Console.WriteLine($"Forventet udbetalingstidspunkt: {payoutDate}");
     Console.WriteLine();
 }
-
 Console.WriteLine("Tryk på en tast for at lukke...");
 Console.ReadKey();
