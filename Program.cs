@@ -160,14 +160,14 @@ foreach (var (yearMonth, payoutDate, result) in results)
 
         Console.WriteLine($"{"Kundebetaling brutto inkl. Apple-opkrævede skatter:".PadRight(lw)}{A(result.GrossCustomerPayments)}");
         Console.WriteLine($"{"Apple-opkrævet kundemoms/skatter:".PadRight(lw)}{A(-result.CustomerTax)}");
-        Console.WriteLine($"{"Omsætning ekskl. kundemoms/skatter (Konto 53900):".PadRight(lw)}{A(result.Revenue)}");
+        Console.WriteLine($"{"Omsætning ekskl. kundemoms/skatter:".PadRight(lw)}{A(result.Revenue)}");
         Console.WriteLine($"{"Apple commission (Konto: 4075):".PadRight(lw)}{A(-result.AppleCommission)}");
 
         var feePercent = result.Revenue != 0
             ? result.AppleCommission / result.Revenue * 100
             : 0;
         Console.WriteLine($"{"Apple commission %:".PadRight(lw)}{P(feePercent)}");
-        Console.WriteLine($"{"Netto til udbetaling, estimeret DKK:".PadRight(lw)}{A(result.NetPayout)}");
+        Console.WriteLine($"{"Netto til udbetaling, estimeret DKK (Konto 53900):".PadRight(lw)}{A(result.NetPayout)}");
         Console.WriteLine($"{"Reverse charge grundlag:".PadRight(lw)}{A(result.ReverseChargeBase)}");
         Console.WriteLine($"{"Reverse charge moms:".PadRight(lw)}{A(result.ReverseChargeVAT)}");
         var control = Math.Round(result.NetPayout + result.AppleCommission, 2);
@@ -198,7 +198,7 @@ foreach (var (yearMonth, payoutDate, result) in results)
 if (vendorName == "Apple")
 {
     Console.WriteLine("Bogføring i Dinero (pr. måned):");
-    Console.WriteLine("Linje 1: 53900 Tilgodehavende Apple / 1070 Apple App Store omsætning = Revenue");
+    Console.WriteLine("Linje 1: 53900 Tilgodehavende Apple / 1070 Apple App Store omsætning = NetPayout");
     Console.WriteLine("Linje 2: 4075 Apple App Store fee / 1070 Apple App Store omsætning = AppleCommission");
     Console.WriteLine("Apple-opkrævet kundemoms/skatter bogføres ikke.");
     Console.WriteLine();
